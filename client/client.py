@@ -183,38 +183,29 @@ def tcp_thread(index ,server_address, server_port):
             tcp_socket.connect((server_address, server_port))
             print(f"TCP thread {index}: Connected to {server_address}:{server_port}")
             
-            #TODO: check!!!
-            request_packet_with_newLine = create_request_packet() + b'\n'
-            tcp_socket.sendall(request_packet_with_newLine)
+            size_message = f"{requested_size_in_bytes}\n" 
+            encoded_message = size_message.encode('utf-8')  
+            tcp_socket.sendall(encoded_message) 
 
 
 
             # Receive file data
             total_bytes_received = 0
-            total_payload = 0
             start_time = time.time()
             
-            data = tcp_socket.recv(1024) 
-            if not data:
-                print(f"TCP Thread {index}: Server closed the connection.")
-
-            payload_length = check_payload_packet(data)
-            if (not payload_length):
-                raise Exception("TCP Thread {index}: invalid payload")
-            total_bytes_received += len(payload_length)
 
             while total_bytes_received < requested_size_in_bytes:
                 data = tcp_socket.recv(1024) 
                 if not data:
                     print(f"TCP Thread {index}: Server closed the connection.")
                     break
-                total_bytes_received += len(data)
+                total_bytes_received += len(data) #TODO: need to check received > asked?
             
             end_time = time.time()
 
             # Calculate download speed
             elapsed_time = end_time - start_time
-            speed_mbps = (total_bytes_received * 8) / (elapsed_time * 1_000_000)  # Convert to Mbps
+            speed_mbps = (total_bytes_received * 8) / (elapsed_time * 1000000)  # Convert to Mbps
             print(f"TCP transfer #{index} finished, total time: {elapsed_time:.2f} seconds, total speed: {speed_mbps:.2f} bits/second")
 
     except socket.error as e:
@@ -231,6 +222,11 @@ def udp_thread(index, server_address, server_port):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as udp_socket:
             udp_socket.settimeout(1.0)
             print(f"UDP thread {index}: Listening for data from {server_address}:{server_port}")
+
+            request_packet = create_request_packet()
+            udp_socket.sendall(request_packet)
+
+
 
             total_bytes_received = 0
             total_packets_received = 0
@@ -263,7 +259,7 @@ def udp_thread(index, server_address, server_port):
 
             # Calculate statistics
             elapsed_time = end_time - start_time
-            speed_mbps = (total_bytes_received * 8) / (elapsed_time * 1_000_000) 
+            speed_mbps = (total_bytes_received * 8) / (elapsed_time * 1000000) 
             success_percentage = (total_packets_received / total_packets_expected) * 100
 
 
