@@ -47,7 +47,8 @@ def listening_tcp_main(socket : socket.socket): #function that waits for new TCP
     try:
         socket.listen(10)
         while(not terminate):
-            newSocket , _ = socket.accept()
+            newSocket , (sender_ip,sender_port) = socket.accept()
+            print(f"Info(TCP main thread): made new connection: {sender_ip}:{sender_port}.")
             tcp_single_connection(newSocket)
     except Exception as e:
         print(f"Unexpected error(TCP main thread): {e}. closing socket.")
