@@ -279,7 +279,7 @@ def create_request_packet():
 
 
     # Pack the data into a binary format
-    request_packet = struct.pack('>I B Q', magic_cookie_constant, request_message_type, size_in_bytes) 
+    request_packet = struct.pack('>I B Q', magic_cookie_constant, request_message_type, requested_size_in_bytes) 
     # make sure it stays in bytes....
 
     return request_packet

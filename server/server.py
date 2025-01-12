@@ -45,6 +45,7 @@ terminate = False
 
 def listening_tcp_main(socket : socket.socket): #function that waits for new TCP connections. creates new thread for each new socket created.
     try:
+        socket.listen(10)
         while(not terminate):
             newSocket , _ = socket.accept()
             tcp_single_connection(newSocket)
@@ -135,24 +136,35 @@ def udp_single_connection(socket:socket.socket,dest_ip , dest_port ,bytes_to_sen
     return
 
 def broadcast_main(socket : socket.socket): #sends broadcast message every second, as defined in the pdf.
-    broadcast_message = struct.pack("!IBHH", magic_cookie,broadcast_message_type,udp_port,tcp_port)
-    while(not terminate):
-        socket.sendto(broadcast_message, (BROADCAST_IP,udp_boradcast_socket))
-        time.sleep(1)
-    return
-
-if __name__ =="__main__":
+    try:
+        broadcast_message = struct.pack("!IBHH", magic_cookie,broadcast_message_type,udp_port,tcp_port)
+        while(not terminate):
+            socket.sendto(broadcast_message, (BROADCAST_IP,UDP_BROADCAST_PORT))
+            time.sleep(1)
+    except Exception as e:
+        print(f"Unexpected Error(broadcast main):{e}.")
+    finally:
+        return
+    
+def main():
     tcp_receive_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #socket to receive new tcp connections.
     udp_receive_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #socket to receive udp packets (with formats as defined in the pdf).
-    udp_boradcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #socket to broadcast offer message (with format as defined in the pdf).
+    udp_broadcast_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #socket to broadcast offer message (with format as defined in the pdf).
     try: 
         tcp_receive_socket.bind((HOST, tcp_port))
-        tcp_receive_socket.bind((HOST, udp_port))
+        udp_receive_socket.bind((HOST, udp_port))
+        udp_broadcast_socket.bind((HOST,UDP_BROADCAST_PORT))
+        udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         #3 "main" threads:
-        tcp_listening_thread = threading.Thread(target=listening_tcp_main,args=(udp_receive_socket,)) #waits for new tcp connections 
+        tcp_listening_thread = threading.Thread(target=listening_tcp_main,args=(tcp_receive_socket,)) #waits for new tcp connections 
         tcp_listening_thread.start()
         udp_listening_thread = threading.Thread(target=listening_udp_main,args=(udp_receive_socket,)) #waits for udp request packets
         udp_listening_thread.start()
-        broadcast_main() #broadcasts every second.
+        broadcast_main(udp_broadcast_socket) #broadcasts every second.
     except Exception as e:
         print(f"error:{e}")
+
+
+if __name__ =="__main__":
+    main()
