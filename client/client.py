@@ -284,7 +284,7 @@ def create_request_packet():
 
 
     # Pack the data into a binary format
-    request_packet = struct.pack('>I B Q', magic_cookie_constant, request_message_type, requested_size_in_bytes) 
+    request_packet = struct.pack('!IBQ', magic_cookie_constant, request_message_type, requested_size_in_bytes) 
     # make sure it stays in bytes....
 
     return request_packet
@@ -299,7 +299,7 @@ def check_payload_packet(packet):
     
     try:
         # Unpack the header: Magiccookie (4 bytes), Messagetype (1 byte),
-        magic_cookie, message_type, total_segment_count, current_segment_count = struct.unpack('>I B Q Q', packet[:21])
+        magic_cookie, message_type, total_segment_count, current_segment_count = struct.unpack('!IBQQ', packet[:21])
         
         if magic_cookie != magic_cookie_constant:
             print("Invalid packet: Magic cookie mismatch.")

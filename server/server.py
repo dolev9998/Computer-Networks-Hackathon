@@ -61,7 +61,6 @@ def tcp_single_connection(socket : socket.socket):
     #reach this function with a thread dedicated to handle established TCP connection.
     #at this point, waiting for request message (closing socket if invalid message).
     try:
-        receive_buffer = bytearray(128)
         data = socket.recv(1024)
         decoded_data = data.decode('utf-8').strip()
         bytes_to_send = int(decoded_data)
@@ -90,22 +89,25 @@ def listening_udp_main(socket: socket.socket):
     try:
         receive_buffer = bytearray(128)
         while(not terminate):
-            num_received , sender = socket.recv_into(receive_buffer,128)
+            num_received , sender = socket.recvfrom_into(receive_buffer,128)
             sender_ip, sender_port = sender
             if(num_received == 13):
-                magic_cookie1, message_type1, file_size = struct.unpack("!IBL",receive_buffer)
-                if(magic_cookie1 == magic_cookie and message_type1 == 0x3):
-                    udp_single_connection_thread = threading.Thread(target=udp_single_connection,args=(socket,sender_ip,sender_port,))
-                    udp_single_connection_thread.start()
-                else:
-                    if(magic_cookie1 != magic_cookie):
-                        print(f"Error(UDP): received message with invalid magic_cookie:{magic_cookie1} from {sender_ip}:{sender_port}, ignoring.")
+                try:
+                    magic_cookie1, message_type1, file_size = struct.unpack("!IBQ",receive_buffer[:13])
+                    if(magic_cookie1 == magic_cookie and message_type1 == 0x3):
+                        udp_single_connection_thread = threading.Thread(target=udp_single_connection,args=(socket,sender_ip,sender_port,file_size,))
+                        udp_single_connection_thread.start()
                     else:
-                        print(f"Error(UDP): received message with invalid message_type:{message_type1} from {sender_ip}:{sender_port}, ignoring.")
+                        if(magic_cookie1 != magic_cookie):
+                            print(f"Error(UDP): received message with invalid magic_cookie:{magic_cookie1} from {sender_ip}:{sender_port}, ignoring.")
+                        else:
+                            print(f"Error(UDP): received message with invalid message_type:{message_type1} from {sender_ip}:{sender_port}, ignoring.")
+                except Exception as e:
+                    print(f"Unexpected error(UDP): {e}")
             else:
                 print(f"Error(UDP): received message with invalid length:{num_received} from {sender_ip}:{sender_port}, ignoring.")
     except Exception as e:
-        print(f"unexpected erorr(UDP main thread):{e}. closing socket.")
+        print(f"unexpected error(UDP main thread):{e}. closing socket.")
     finally:
         socket.close()
         return
@@ -114,7 +116,7 @@ def udp_single_connection(socket:socket.socket,dest_ip , dest_port ,bytes_to_sen
     print(f"Info(UDP): starting to send {bytes_to_send} bytes to {dest_ip}:{dest_port}.")
     send_buffer = bytearray(UDP_packet_size) 
     send_buffer[payload_magic_cookie_index:payload_message_type_index] = struct.pack('>I',magic_cookie) 
-    send_buffer[payload_message_type_index] = struct.pack('>B', payload_message_type)
+    send_buffer[payload_message_type_index:payload_message_type_index+1] = struct.pack('>B', payload_message_type)
     total_segments = bytes_to_send//UDP_payload_size #we'll send constant amount of payload in each message, defined by UDP_payload_size.
     if(total_segments * UDP_payload_size != bytes_to_send): #if bytes_to_send not divideable by payload size, the last packet will be of the remaining bytes that didn't fit.
         total_segments += 1
