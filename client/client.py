@@ -206,7 +206,7 @@ def tcp_thread(index ,server_address, server_port):
             # Calculate download speed
             elapsed_time = end_time - start_time
             speed_mbps = (total_bytes_received * 8) / (elapsed_time * 1000000)  # Convert to Mbps
-            print(f"TCP transfer #{index} finished, total time: {elapsed_time:.2f} seconds, total speed: {speed_mbps:.2f} bits/second")
+            print(f"TCP transfer #{index} finished, total time: {elapsed_time:.2f} seconds, total speed: {speed_mbps:.2f} Mbps")
 
     except socket.error as e:
         print(f"TCP thread {index}: Error with TCP connection to {server_address}:{server_port} - {e}")
