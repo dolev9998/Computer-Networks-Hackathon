@@ -228,7 +228,7 @@ def udp_thread(index, server_address, server_port):
             print(f"UDP thread {index}: Listening for data from {server_address}:{server_port}")
 
             request_packet = create_request_packet()
-            udp_socket.sendall(request_packet)
+            udp_socket.sendto(request_packet, (server_address, server_port))
 
 
 
