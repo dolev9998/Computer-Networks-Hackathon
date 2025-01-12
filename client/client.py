@@ -259,7 +259,8 @@ def udp_thread(index, server_address, server_port):
                     break
 
             end_time = time.time()
-            end_time -= 1
+            if not total_bytes_received < requested_size_in_bytes:
+                end_time -= 1
 
             # Calculate statistics
             elapsed_time = end_time - start_time
