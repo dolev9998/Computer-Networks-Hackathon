@@ -43,16 +43,22 @@ def main():
 #----------------------------------start of startup phase---------------------------------
 # gets the configuration of the tranfer by the user.
 def startup_phase():
+    global file_size
+    global requested_size_in_bytes
+    global tcp_connections
+    global udp_connections
+
+
     file_size = input("Enter the file size: ").strip().upper()
     
     if file_size.endswith("GB"):
-        size_in_bytes = int(file_size[:-2]) * 1024 ** 3
+        requested_size_in_bytes = int(file_size[:-2]) * 1024 ** 3
     elif file_size.endswith("MB"):
-        size_in_bytes = int(file_size[:-2]) * 1024 ** 2
+        requested_size_in_bytes = int(file_size[:-2]) * 1024 ** 2
     else:
         print("Invalid file size format. Please specify in GB or MB.")
         return False
-    if size_in_bytes == 0:
+    if requested_size_in_bytes == 0:
         print("Invalid size given.")
         return False
 
@@ -73,6 +79,7 @@ def startup_phase():
     except ValueError:
         print("Invalid input. Please enter an integer for UDP connections.")
         return False
+
     display_summary()
     return True
 
