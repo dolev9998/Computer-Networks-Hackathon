@@ -99,7 +99,7 @@ def display_summary():
 def listen_phase():
     print("Client started, listening for offer requests...")
     while True:
-        message, address = listen_to_broadcasts()     
+        message, (address , port) = listen_to_broadcasts()     
         validation_result = validate_offer_message(message)     
         if validation_result:
             server_udp_port, server_tcp_port = validation_result
@@ -155,21 +155,18 @@ def validate_offer_message(message):
 #----------------------------------------start of speed test phase---------------------------------------
 #launches threads for each connection and port specified
 def speed_test_phase(address, udp_port, tcp_port):
-    i = 1
     threads = []
 
     # Create and start TCP threads
     for i in range(tcp_connections):
-        thread = threading.Thread(target=tcp_thread, args=(i,address, tcp_port))
-        i += 1
+        thread = threading.Thread(target=tcp_thread, args=(i+1,address, tcp_port))
         threads.append(thread)
         thread.start()
     
     i = 1
     # Create and start UDP threads
     for i in range(udp_connections):
-        thread = threading.Thread(target=udp_thread, args=(i, address, udp_port))
-        i += 1
+        thread = threading.Thread(target=udp_thread, args=(i+1, address, udp_port))
         threads.append(thread)
         thread.start()
 
