@@ -38,9 +38,9 @@ payload_actual_payload_index = 21
 
 UDP_packet_size = 508 # bytes. this number is based on "The maximum safe UDP payload" we found over stackoverflow.
 UDP_payload_size = UDP_packet_size - payload_actual_payload_index #packet_size - header_size
-HOST = '127.0.0.1'
+HOST = ''#'127.0.0.1'
 BROADCAST_IP = '255.255.255.255' 
-UDP_BROADCAST_PORT = 13117
+UDP_BROADCAST_PORT = 13200
 terminate = False
 
 def listening_tcp_main(socket : socket.socket): #function that waits for new TCP connections. creates new thread for each new socket created.
@@ -157,7 +157,6 @@ def main():
         tcp_receive_socket.bind((HOST, tcp_port))
         udp_receive_socket.bind((HOST, udp_port))
         udp_broadcast_socket.bind((HOST,UDP_BROADCAST_PORT))
-        udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         udp_broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         #3 "main" threads:
         tcp_listening_thread = threading.Thread(target=listening_tcp_main,args=(tcp_receive_socket,)) #waits for new tcp connections 

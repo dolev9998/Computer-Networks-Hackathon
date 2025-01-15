@@ -6,7 +6,7 @@ import threading
 
 
 #constants
-UDP_BROADCAST_PORT = 13117
+UDP_BROADCAST_PORT = 13200
 magic_cookie_constant = 0xabcddcba  # Magic cookie
 offer_message_type = 0x2 
 request_message_type = 0x3
